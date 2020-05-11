@@ -7,10 +7,10 @@ app.config.from_envvar('APP_CONFIG_FILE')
 MAPBOX_ACCESS_KEY = app.config['MAPBOX_ACCESS_KEY']
 
 
-@app.route('/mapbox_js')
+@app.route('/lampnet_demo')
 def mapbox_js():
     return render_template(
-        'mapbox_js.html',
+        'lampnet_demo.html',
         ACCESS_KEY=MAPBOX_ACCESS_KEY
     )
 
