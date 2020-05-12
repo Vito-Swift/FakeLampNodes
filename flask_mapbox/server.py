@@ -1,7 +1,6 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, send_from_directory
 from flask_executor import Executor
-from datetime import datetime
-import time
+import json
 import csv
 from .node import global_cpuUsage, global_networkUsage, Node
 
@@ -11,10 +10,9 @@ MAPBOX_ACCESS_KEY = app.config['MAPBOX_ACCESS_KEY']
 POOLING_TIME = 10
 executor = Executor(app)
 
-
-# lampnet = [Node(i) for i in range(100)]
-# for node in lampnet:
-#     node.start()
+lampnet = [Node(i) for i in range(100)]
+for node in lampnet:
+    node.start()
 
 
 @app.route('/lampnet_demo')
@@ -27,13 +25,26 @@ def lampnet_demo():
 
 @app.route('/_update_frame')
 def update_frame():
-    return jsonify()
+    with open('static/map.geojson', 'r') as f:
+        data = json.load(f)
+        for features in data["features"]:
+            features["properties"]["task_type"] = global_cpuUsage[features["properties"]["id"]][1]
+    return jsonify(data)
 
 
 @app.route('/_init_lamps')
 def init_lamps():
     locations = read_lamp_locations_from_csv()
     return jsonify(locations)
+
+
+@app.route('/_init_lamps_json')
+def init_lamps_json():
+    with open('static/map.geojson', 'r') as f:
+        data = json.load(f)
+        for features in data["features"]:
+            features["properties"]["task_type"] = 0
+    return jsonify(data)
 
 
 def read_lamp_locations_from_csv():

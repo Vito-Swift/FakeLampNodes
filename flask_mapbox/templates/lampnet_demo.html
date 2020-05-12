@@ -3,10 +3,8 @@
     <meta charset='utf-8'/>
     <title></title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
-    <!-- Import Mapbox GL JS -->
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css' rel='stylesheet'/>
-    <!-- Import jQuery -->
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
     <style>
         body {
@@ -54,39 +52,13 @@
             border-radius: 50%;
             opacity: 80%;
         }
-
-        .marker-idle {
-            background-image: radial-gradient(
-                    circle closest-side,
-                    greenyellow,
-                    yellowgreen
-            );
-        }
-
-        .marker-task1 {
-            background-image: radial-gradient(
-                    circle closest-side,
-                    yellow,
-                    #f0a14e
-            );
-        }
-
-        .marker-task2 {
-            background-image: radial-gradient(
-                    circle closest-side,
-                    orange,
-                    brown
-            )
-        }
-
-        .marker-task3 {
-            background-image: radial-gradient(
-                    circle closest-side,
-                    red,
-                    brown
-            );
-        }
     </style>
+    <script>
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('iframe')) {
+            $('div.map-overlay-inner').click(() => window.open(window.location.origin + window.location.pathname));
+        }
+    </script>
 </head>
 <body>
 <div id='map'></div>
@@ -115,6 +87,7 @@
         ],
         bearing: 29,
     });
+    new Array(100).fill(0);
 
     var update_url = '/_update_frame';
     var init_url = '/_init_lamps';
@@ -124,17 +97,6 @@
             init_request.onload = function () {
                 if (this.status >= 200 && this.status < 400) {
                     var json = JSON.parse(this.response);
-
-                    // draw markers
-                    for (var i = 0; i < json.length; i++) {
-                        var el = document.createElement('div');
-                        el.className = 'marker marker-idle';
-                        el.id = i;
-
-                        new mapboxgl.Marker(el)
-                            .setLngLat([json[i][1], json[i][2]])
-                            .addTo(map);
-                    }
 
                     // draw lines
                     drawLines();
@@ -270,7 +232,7 @@
                                 'line-cap': 'round',
                                 'line-join': 'round',
                             }
-                        })
+                        });
 
                         map.addLayer({
                             type: 'line',
@@ -305,6 +267,30 @@
                         })
 
                     }
+
+                    // draw markers
+                    map.addLayer({
+                        id: "lamps",
+                        type: 'circle',
+                        source: {
+                            type: 'geojson',
+                            data: "/_init_lamps_json"
+                        },
+                        paint: {
+                            'circle-radius': 10,
+                            'circle-color': [
+                                'interpolate',
+                                ['linear'],
+                                ['number', ['get', 'task_type']],
+                                0, '#b3f542',
+                                1, '#ffff00',
+                                2, '#ffa500',
+                                3, '#ff0000',
+                                5, '#c0c0c0'
+                            ],
+                            'circle-opacity': 0.8
+                        }
+                    });
                 }
             };
             init_request.send();
@@ -312,32 +298,110 @@
             // update routine
             var update_request = new XMLHttpRequest();
             window.setInterval(function () {
-                request.open('GET', update_url, true);
-                request.onload = function () {
+                update_request.open('GET', update_url, true);
+                update_request.onload = function () {
                     if (this.status >= 200 && this.status < 400) {
                         var json = JSON.parse(this.response);
-                        console.log(json);
+                        map.getSource("lamps").setData(json);
                     }
                 };
-                request.send();
-            }, 2000);
+                update_request.send();
+
+                function shuffle(array) {
+                    var currentIndex = array.length, temporaryValue, randomIndex;
+
+                    // While there remain elements to shuffle...
+                    while (0 !== currentIndex) {
+
+                        // Pick a remaining element...
+                        randomIndex = Math.floor(Math.random() * currentIndex);
+                        currentIndex -= 1;
+
+                        // And swap it with the current element.
+                        temporaryValue = array[currentIndex];
+                        array[currentIndex] = array[randomIndex];
+                        array[randomIndex] = temporaryValue;
+                    }
+
+                    return array;
+                }
+
+                color_array = ['blue', 'royalblue', 'cyan', 'lime', 'yellow', 'red'];
+                partition_choice = [
+                    [0.1, 0.3, 0.6, 0.8],
+                    [0.2, 0.3, 0.4, 0.5],
+                    [0.5, 0.7, 0.9, 0.95],
+                    [0.2, 0.4, 0.6, 0.8],
+                    [0.1, 0.3, 0.5, 0.7],
+                    [0.3, 0.4, 0.6, 0.7]
+                ];
+
+                shuffle(color_array);
+                shuffle(partition_choice);
+                tmp_gradient = [
+                    'interpolate',
+                    ['linear'],
+                    ['line-progress'],
+                    0,
+                    color_array[0],
+                    partition_choice[0][0],
+                    color_array[1],
+                    partition_choice[0][1],
+                    color_array[2],
+                    partition_choice[0][2],
+                    color_array[3],
+                    partition_choice[0][3],
+                    color_array[4],
+                    1,
+                    color_array[5]
+                ];
+                map.setPaintProperty('line_1', 'line-gradient', tmp_gradient);
+
+                shuffle(color_array);
+                shuffle(partition_choice);
+                tmp_gradient = [
+                    'interpolate',
+                    ['linear'],
+                    ['line-progress'],
+                    0,
+                    color_array[0],
+                    partition_choice[0][0],
+                    color_array[1],
+                    partition_choice[0][1],
+                    color_array[2],
+                    partition_choice[0][2],
+                    color_array[3],
+                    partition_choice[0][3],
+                    color_array[4],
+                    1,
+                    color_array[5]
+                ];
+                console.log(tmp_gradient);
+                map.setPaintProperty('line_2', 'line-gradient', tmp_gradient);
+
+                shuffle(color_array);
+                shuffle(partition_choice);
+                tmp_gradient = [
+                    'interpolate',
+                    ['linear'],
+                    ['line-progress'],
+                    0,
+                    color_array[0],
+                    partition_choice[0][0],
+                    color_array[1],
+                    partition_choice[0][1],
+                    color_array[2],
+                    partition_choice[0][2],
+                    color_array[3],
+                    partition_choice[0][3],
+                    color_array[4],
+                    1,
+                    color_array[5]
+                ];
+                map.setPaintProperty('line_3', 'line-gradient', tmp_gradient);
+            }, 1000);
         }
     )
-    // map.on('load', function () {
-    //     console.log("requesting");
-    //     var request = new XMLHttpRequest();
-    //     window.setInterval(function () {
-    //         request.open('GET', url, true);
-    //         request.onload = function () {
-    //             if (this.status >= 200 && this.status < 400) {
-    //                 var json = JSON.parse(this.response);
-    //                 console.log(json);
-    //             }
-    //         };
-    //         request.send();
-    //     }, 1000);
-    // })
-    // map.scrollZoom.disable();
 </script>
 </body>
 </html>

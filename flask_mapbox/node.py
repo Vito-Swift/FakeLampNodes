@@ -9,20 +9,21 @@ import os
 
 
 def output_datapoint(metric_name: str, measured_value: int, timestamp: int):
-    message = "{} {:d} {:d}\n".format(metric_name, int(measured_value), int(timestamp))
-    print(message)
-
-    # Test with `nc -lvukw 0 127.0.0.1 2003`
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        sock.settimeout(1.0)
-        sock.connect(('localhost', 2003))
-        message = bytes(message, 'utf-8')
-        sock.send(message)
-        sock.close()
-    except:
-        pass
+    pass
+    # message = "{} {:d} {:d}\n".format(metric_name, int(measured_value), int(timestamp))
+    # print(message)
+    #
+    # # Test with `nc -lvukw 0 127.0.0.1 2003`
+    # try:
+    #     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #
+    #     sock.settimeout(1.0)
+    #     sock.connect(('localhost', 2003))
+    #     message = bytes(message, 'utf-8')
+    #     sock.send(message)
+    #     sock.close()
+    # except:
+    #     pass
 
 
 global_cpuUsage = {}
@@ -143,7 +144,6 @@ class Node:
         output_datapoint("lampnets.online.{}".format(self.id), value, timeStamp)
 
     def set_task(self, taskType, taskTime):
-        print("set_task: ({},{})".format(taskType, taskTime))
         self.taskType = taskType
         self.taskTime = taskTime
         if self.taskType == TASK.IDLE:
