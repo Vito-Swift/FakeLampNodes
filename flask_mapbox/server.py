@@ -1,14 +1,12 @@
-from flask import Flask, render_template, jsonify, send_from_directory
-from flask_executor import Executor
+from flask import Flask, render_template, jsonify
 import json
 import csv
-from .node import global_cpuUsage, global_networkUsage, Node
+from .node import global_cpuUsage, Node
 
 app = Flask(__name__)
 app.config.from_envvar('APP_CONFIG_FILE')
 MAPBOX_ACCESS_KEY = app.config['MAPBOX_ACCESS_KEY']
 POOLING_TIME = 10
-executor = Executor(app)
 
 lampnet = [Node(i) for i in range(100)]
 for node in lampnet:
