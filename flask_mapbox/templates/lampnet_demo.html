@@ -53,12 +53,6 @@
             opacity: 80%;
         }
     </style>
-    <script>
-        var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('iframe')) {
-            $('div.map-overlay-inner').click(() => window.open(window.location.origin + window.location.pathname));
-        }
-    </script>
 </head>
 <body>
 <div id='map'></div>
@@ -433,6 +427,10 @@
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('iframe')) {
+        $('div.map-overlay-inner').click(() => window.open(window.location.origin + window.location.pathname));
+    }
 </script>
 </body>
 </html>
