@@ -215,12 +215,12 @@ class Node:
 # node.stop()
 
 
-lampnet = [Node(i) for i in range(100)]
-for node in lampnet:
-    # time.sleep(random.random())
-    node.start()
-
-time.sleep(900)
-
-for node in lampnet:
-    node.stop()
+# lampnet = [Node(i) for i in range(100)]
+# for node in lampnet:
+#     # time.sleep(random.random())
+#     node.start()
+#
+# time.sleep(900)
+#
+# for node in lampnet:
+#     node.stop()

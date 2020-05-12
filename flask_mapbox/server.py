@@ -12,9 +12,9 @@ POOLING_TIME = 10
 executor = Executor(app)
 
 
-lampnet = [Node(i) for i in range(100)]
-for node in lampnet:
-    node.start()
+# lampnet = [Node(i) for i in range(100)]
+# for node in lampnet:
+#     node.start()
 
 
 @app.route('/lampnet_demo')
