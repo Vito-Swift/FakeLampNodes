@@ -282,10 +282,10 @@
                                 'interpolate',
                                 ['linear'],
                                 ['number', ['get', 'task_type']],
-                                0, '#b3f542',
-                                1, '#ffff00',
-                                2, '#ffa500',
-                                3, '#ff0000',
+                                0, '#8ea604',
+                                1, '#f5bb00',
+                                2, '#ec9f05',
+                                3, '#c5410f',
                                 5, '#c0c0c0'
                             ],
                             'circle-opacity': 0.8
@@ -298,6 +298,17 @@
             // update routine
             var update_request = new XMLHttpRequest();
             window.setInterval(function () {
+                var time_label = document.getElementById("time");
+                var alive_label = document.getElementById("alive_count");
+                var dead_label = document.getElementById("dead_count");
+                var net_label = document.getElementById("net_util");
+
+                var d = new Date();
+                time_label.innerHTML = d.Format("yyyy-MM-dd hh:mm:ss");
+                alive_label.innerHTML = 100;
+                dead_label.innerHTML = 0;
+                net_label.innerHTML = (randomIntFromInterval(30, 100)).toString() + "%";
+
                 update_request.open('GET', update_url, true);
                 update_request.onload = function () {
                     if (this.status >= 200 && this.status < 400) {
@@ -326,7 +337,7 @@
                     return array;
                 }
 
-                color_array = ['blue', 'royalblue', 'cyan', 'lime', 'yellow', 'red'];
+                color_array = ['#8ea604', '#f5bb00', '#ec9f05', '#d76a03', '#bf3100', '#c2b102'];
                 partition_choice = [
                     [0.1, 0.3, 0.6, 0.8],
                     [0.2, 0.3, 0.4, 0.5],
@@ -376,7 +387,6 @@
                     1,
                     color_array[5]
                 ];
-                console.log(tmp_gradient);
                 map.setPaintProperty('line_2', 'line-gradient', tmp_gradient);
 
                 shuffle(color_array);
@@ -401,7 +411,28 @@
                 map.setPaintProperty('line_3', 'line-gradient', tmp_gradient);
             }, 1000);
         }
-    )
+    );
+
+    Date.prototype.Format = function (fmt) {
+        var o = {
+            "M+": this.getMonth() + 1,
+            "d+": this.getDate(),
+            "h+": this.getHours(),
+            "m+": this.getMinutes(),
+            "s+": this.getSeconds(),
+            "q+": Math.floor((this.getMonth() + 3) / 3),
+            "S": this.getMilliseconds()
+        };
+        if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+    };
+
+    function randomIntFromInterval(min, max) { // min and max included
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+
 </script>
 </body>
 </html>
