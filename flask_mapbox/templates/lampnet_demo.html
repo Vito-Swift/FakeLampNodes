@@ -429,6 +429,9 @@
 
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('iframe')) {
+        $('div.map-overlay-inner>div, div.map-overlay-inner>h2').hide();
+        $('div.map-overlay-inner').append('⇱ Open Map');
+        $('div.map-overlay-inner').css('width', 'max-content');
         $('div.map-overlay-inner').click(() => window.open(window.location.origin + window.location.pathname));
     }
 </script>
