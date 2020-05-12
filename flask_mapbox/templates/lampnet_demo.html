@@ -14,16 +14,93 @@
             padding: 0;
         }
 
+        .map-overlay {
+            font: 16px/28px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            position: absolute;
+            width: 25%;
+            top: 0;
+            left: 0;
+            padding: 10px;
+            background-color: transparent;
+        }
+
+        .map-overlay .map-overlay-inner {
+            /*background-color: #fff;*/
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(1, 1, 1, .5);
+            color: lightgrey;
+        }
+
+        .map-overlay h2 {
+            line-height: 24px;
+            display: block;
+            margin: 0 0 10px;
+        }
+
         #map {
             position: absolute;
             top: 0;
             bottom: 0;
             width: 100%;
         }
+
+        .marker {
+            background-size: cover;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            opacity: 80%;
+        }
+
+        .marker-idle {
+            background-image: radial-gradient(
+                    circle closest-side,
+                    greenyellow,
+                    yellowgreen
+            );
+        }
+
+        .marker-task1 {
+            background-image: radial-gradient(
+                    circle closest-side,
+                    yellow,
+                    #f0a14e
+            );
+        }
+
+        .marker-task2 {
+            background-image: radial-gradient(
+                    circle closest-side,
+                    orange,
+                    brown
+            )
+        }
+
+        .marker-task3 {
+            background-image: radial-gradient(
+                    circle closest-side,
+                    red,
+                    brown
+            );
+        }
     </style>
 </head>
 <body>
 <div id='map'></div>
+<div class="map-overlay top">
+    <div class="map-overlay-inner">
+        <h2>Monitor Overview</h2>
+        <div>
+            <b>Time:</b> <span id="time"></span><br>
+            <b>Device Alive:</b> <span id="alive_count"></span><br>
+            <b>Device Dead:</b> <span id="dead_count"></span><br>
+            <b>Network Utilization:</b> <span id="net_util"></span><br>
+        </div>
+    </div>
+</div>
 <script>
     mapboxgl.accessToken = '{{ ACCESS_KEY }}';
     var map = new mapboxgl.Map({
@@ -38,6 +115,228 @@
         ],
         bearing: 29,
     });
+
+    var update_url = '/_update_frame';
+    var init_url = '/_init_lamps';
+    map.on('load', function () {
+            var init_request = new XMLHttpRequest();
+            init_request.open('GET', init_url, true);
+            init_request.onload = function () {
+                if (this.status >= 200 && this.status < 400) {
+                    var json = JSON.parse(this.response);
+
+                    // draw markers
+                    for (var i = 0; i < json.length; i++) {
+                        var el = document.createElement('div');
+                        el.className = 'marker marker-idle';
+                        el.id = i;
+
+                        new mapboxgl.Marker(el)
+                            .setLngLat([json[i][1], json[i][2]])
+                            .addTo(map);
+                    }
+
+                    // draw lines
+                    drawLines();
+
+                    function drawLines() {
+                        route_1 = [];
+                        for (i = 60; i < 74; i++) {
+                            route_1.push([json[i][1], json[i][2]]);
+                        }
+                        route_1.push([json[15][1], json[15][2]]);
+                        for (i = 75; i < 89; i++) {
+                            route_1.push([json[i][1], json[i][2]]);
+                        }
+                        route_1.push([json[45][1], json[45][2]]);
+                        for (i = 90; i < 100; i++) {
+                            route_1.push([json[i][1], json[i][2]]);
+                        }
+
+                        route_2 = [];
+                        for (i = 0; i < 30; i++) {
+                            route_2.push([json[i][1], json[i][2]]);
+                        }
+
+                        route_3 = [];
+                        for (i = 30; i < 60; i++) {
+                            route_3.push([json[i][1], json[i][2]]);
+                        }
+
+                        var route_1_json = {
+                            'type': 'Feature',
+                            'properties': {},
+                            'geometry': {
+                                'type': 'LineString',
+                                'coordinates': route_1
+                            },
+                        };
+
+                        var route_2_json = {
+                            'type': 'Feature',
+                            'properties': {},
+                            'geometry': {
+                                'type': 'LineString',
+                                'coordinates': route_2
+                            },
+                        };
+
+                        var route_3_json = {
+                            'type': 'Feature',
+                            'properties': {},
+                            'geometry': {
+                                'type': 'LineString',
+                                'coordinates': route_3
+                            },
+                        };
+
+                        map.addSource('line_1', {
+                            type: 'geojson',
+                            lineMetrics: true,
+                            data: route_1_json
+                        });
+
+                        map.addSource('line_2', {
+                            type: 'geojson',
+                            lineMetrics: true,
+                            data: route_2_json
+                        });
+
+                        map.addSource('line_3', {
+                            type: 'geojson',
+                            lineMetrics: true,
+                            data: route_3_json
+                        });
+
+                        map.addLayer({
+                            type: 'line',
+                            source: 'line_1',
+                            id: 'line_1',
+                            paint: {
+                                'line-color': 'red',
+                                'line-width': 8,
+                                'line-opacity': 0.6,
+                                'line-gradient': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['line-progress'],
+                                    0,
+                                    'blue',
+                                    0.1,
+                                    'royalblue',
+                                    0.3,
+                                    'cyan',
+                                    0.5,
+                                    'lime',
+                                    0.7,
+                                    'yellow',
+                                    1,
+                                    'red'
+                                ]
+                            },
+                            layout: {
+                                'line-cap': 'round',
+                                'line-join': 'round',
+                            }
+                        });
+
+                        map.addLayer({
+                            type: 'line',
+                            source: 'line_2',
+                            id: 'line_2',
+                            paint: {
+                                'line-color': 'red',
+                                'line-width': 8,
+                                'line-opacity': 0.6,
+                                'line-gradient': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['line-progress'],
+                                    0,
+                                    'blue',
+                                    0.1,
+                                    'royalblue',
+                                    0.3,
+                                    'cyan',
+                                    0.5,
+                                    'lime',
+                                    0.7,
+                                    'yellow',
+                                    1,
+                                    'red'
+                                ]
+                            },
+                            layout: {
+                                'line-cap': 'round',
+                                'line-join': 'round',
+                            }
+                        })
+
+                        map.addLayer({
+                            type: 'line',
+                            source: 'line_3',
+                            id: 'line_3',
+                            paint: {
+                                'line-color': 'red',
+                                'line-width': 8,
+                                'line-opacity': 0.6,
+                                'line-gradient': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['line-progress'],
+                                    0,
+                                    'blue',
+                                    0.1,
+                                    'royalblue',
+                                    0.3,
+                                    'cyan',
+                                    0.5,
+                                    'lime',
+                                    0.7,
+                                    'yellow',
+                                    1,
+                                    'red'
+                                ]
+                            },
+                            layout: {
+                                'line-cap': 'round',
+                                'line-join': 'round',
+                            }
+                        })
+
+                    }
+                }
+            };
+            init_request.send();
+
+            // update routine
+            var update_request = new XMLHttpRequest();
+            window.setInterval(function () {
+                request.open('GET', update_url, true);
+                request.onload = function () {
+                    if (this.status >= 200 && this.status < 400) {
+                        var json = JSON.parse(this.response);
+                        console.log(json);
+                    }
+                };
+                request.send();
+            }, 2000);
+        }
+    )
+    // map.on('load', function () {
+    //     console.log("requesting");
+    //     var request = new XMLHttpRequest();
+    //     window.setInterval(function () {
+    //         request.open('GET', url, true);
+    //         request.onload = function () {
+    //             if (this.status >= 200 && this.status < 400) {
+    //                 var json = JSON.parse(this.response);
+    //                 console.log(json);
+    //             }
+    //         };
+    //         request.send();
+    //     }, 1000);
+    // })
     // map.scrollZoom.disable();
 </script>
 </body>
