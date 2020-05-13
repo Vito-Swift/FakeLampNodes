@@ -6,6 +6,7 @@
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css' rel='stylesheet'/>
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -45,25 +46,33 @@
             width: 100%;
         }
 
-        .marker {
-            background-size: cover;
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            opacity: 80%;
+        .mapboxgl-popup {
+            min-width: 500px;
+            max-width: 500px;
+            font: 14px/20px 'Inconsolata', monospace;
         }
+
+        .row {
+            display: flex;
+        }
+
+        .column {
+            flex: 50%;
+            padding: 5px;
+        }
+
     </style>
 </head>
 <body>
 <div id='map'></div>
 <div class="map-overlay top">
     <div class="map-overlay-inner">
-        <h2>Monitor Overview</h2>
+        <h2>Traffic Analysis Overview</h2>
         <div>
             <b>Time:</b> <span id="time"></span><br>
             <b>Device Alive:</b> <span id="alive_count"></span><br>
             <b>Device Dead:</b> <span id="dead_count"></span><br>
-            <b>Network Utilization:</b> <span id="net_util"></span><br>
+            <b>Traffic Occupancy:</b> <span id="net_util"></span><br>
         </div>
     </div>
 </div>
@@ -285,6 +294,23 @@
                             'circle-opacity': 0.8
                         }
                     });
+
+                    map.addLayer({
+                        id: "lamps-label",
+                        type: "symbol",
+                        source: {
+                            type: 'geojson',
+                            data: "/_init_lamps_json"
+                        },
+                        layout: {
+                            "text-field": "{id}",
+                            "text-font": [
+                                "DIN Offc Pro Medium",
+                                "Arial Unicode MS Bold"
+                            ],
+                            "text-size": 12
+                        },
+                    })
                 }
             };
             init_request.send();
@@ -406,6 +432,30 @@
             }, 1000);
         }
     );
+
+    // add popups
+    map.on('click', 'lamps', function (e) {
+        console.log(e.features);
+        var coordinates = e.features[0].geometry.coordinates.slice();
+        var description = e.features[0].properties.description;
+
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+
+        new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(description)
+            .addTo(map)
+    });
+
+    map.on('mouseenter', 'lamps', function () {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.on('mouseleave', 'lamps', function () {
+        map.getCanvas().style.cursor = '';
+    });
 
     Date.prototype.Format = function (fmt) {
         var o = {

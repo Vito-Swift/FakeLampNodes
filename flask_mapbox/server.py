@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify
 import json
 import csv
+from random import randrange
 from .node import global_cpuUsage, Node
 
 app = Flask(__name__)
@@ -27,6 +28,29 @@ def update_frame():
         data = json.load(f)
         for features in data["features"]:
             features["properties"]["task_type"] = global_cpuUsage[features["properties"]["id"]][1]
+            features["properties"]["description"] = \
+                "<h3>Lamp Node: %d</h3>" \
+                "<p>" \
+                "Node Cpu Utilization: %d%%<br>" \
+                "Node Network Utilization %d%%<br>" \
+                "Current Task Count: %d%%" \
+                "</p>" \
+                "<strong>Streaming Video from CCTV</strong>" \
+                '<div class="row">' \
+                '<div class="column">' \
+                '<img src="/static/video-placeholder.png" style="width:100%%">' \
+                'Camera 0' \
+                '</div>' \
+                '<div class="column">' \
+                '<img src="/static/video-placeholder.png" style="width:100%%">' \
+                'Camera 1' \
+                '</div>' \
+                "</div>" \
+                % \
+                (features["properties"]["id"],
+                 randrange(10, 100),
+                 randrange(30, 100),
+                 randrange(1, 5))
     return jsonify(data)
 
 
@@ -42,6 +66,7 @@ def init_lamps_json():
         data = json.load(f)
         for features in data["features"]:
             features["properties"]["task_type"] = 0
+            features["properties"]["description"] = "Detail page is initializing..."
     return jsonify(data)
 
 
