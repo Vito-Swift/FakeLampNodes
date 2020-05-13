@@ -61,10 +61,22 @@
             padding: 5px;
         }
 
+
+        .mapboxgl-ctrl-logo {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
-<div id='map'></div>
+<div id='map'>
+    <!-- Modify the style: right position so it matches with the mapbox attribution -->
+    <div id="attribution" class="mapboxgl-ctrl mapboxgl-ctrl-attrib mapboxgl-ctrl-bottom-right"
+         style="position: fixed; bottom: 0; right: 50px;">
+        <a href="*">Lampnets</a> &nbsp;|&nbsp;
+        <a href="*">CSC4001 Course Project</a> &nbsp;|&nbsp;
+        <a href="*">The Chinese University of Hong Kong, Shenzhen</a> &nbsp;|
+    </div>
+</div>
 <div class="map-overlay top">
     <div class="map-overlay-inner">
         <h2>Traffic Analysis Overview</h2>
@@ -89,6 +101,7 @@
             [114.40, 22.87]
         ],
         bearing: 29,
+        attributionControl: false
     });
     new Array(100).fill(0);
 
